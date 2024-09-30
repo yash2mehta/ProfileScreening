@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <title>Job Description</title>
+</head>
+
+<style>
+    .active {
+        border-radius: 5px;
+        border-bottom: 5px solid black;
+    }
+
+    .container {
+        max-width: 100%;
+    }
+
+    .table {
+        width: 100%;
+        table-layout: auto;
+    }
+
+    .table-container {
+        overflow-x: scroll;
+        overflow-y: scroll;
+        max-height: calc(100vh - 200px);
+    }
+
+    .table-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .table-container {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    thead th {
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    #roles-display::-webkit-scrollbar {
+        display: none;
+    }
+
+    #roles-display {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+
+            <!-- Roles Container: Hidden initially -->
+            <div class="col-2 p-3" id="rolesContainer">
+                <div class="row">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="img-fluid col-3"
+                        style="height: 100%;">
+                    <h2 class="mb-4 fs-4 col-auto">Select Role</h2>
+                </div>
+
+                {% if roles_data %}
+
+                <!-- Search Field -->
+                <input type="text" class="form-control" id="search" placeholder="Search roles...">
+
+                <ul class="list-group mt-4" id="roleList">
+                    {% for role in roles_data %}
+                    <li class="list-group-item">
+                        <form action="{{ url_for('filter_by_role') }}" method="POST" style="display:inline;">
+                            <input type="hidden" name="role" value="{{ role }}">
+                            <button type="submit" class="btn btn-link" style="text-decoration: none; color: inherit;">
+                                {{ role }}
+                            </button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                {% else %}
+                <p class="mt-4">No roles available.</p>
+                {% endif %}
+            </div>
+
+            <div class="col-10">
+                <!-- Display error message if available -->
+                {% if error_message %}
+                <div class="alert alert-danger text-center mt-3" role="alert">
+                    {{ error_message }}
+                </div>
+                {% endif %}
+
+                <!-- Base Header -->
+                <div class="container justify-content-center">
+                    <div class="row">
+                        <div class="col p-3 text-center active">
+                            <a href="{{ url_for('selected_profiles') }}" style="text-decoration: none; color: black;">
+                                <h3>Selected Profiles</h3>
+                            </a>
+                        </div>
+                        <div class="col p-3 text-center">
+                            <a href="{{ url_for('job_desc') }}" style="text-decoration: none; color: black;">
+                                <h3>Job Description</h3>
+                            </a>
+                        </div>
+                        <div class="col p-3 text-center">
+                            <a href="{{ url_for('upload_resumes') }}" style="text-decoration: none; color: black;">
+                                <h3>Upload Resumes</h3>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container justify-content-center">
+                    <div class="row">
+                        <!-- Call the Process Function -->
+                        <div class="container p-3 text-center mt-2 col-auto" style="width: 30%;">
+                            <form action="{{ url_for('process_data') }}" method="POST">
+                                <button type="submit" class="btn btn-primary fs-5 d-block mx-auto" style="width: 100%;"
+                                    id="process">Process</button>
+                            </form>
+                        </div>
+
+                        {% if xls_file %}
+                        <!-- Call the Clear Function -->
+                        <div class="container p-3 text-center mt-2 col-auto" style="width: 30%;">
+                            <button type="submit" class="btn btn-primary fs-5 d-block mx-auto" style="width: 100%;"
+                                id="clear_data">Clear
+                                Data</button>
+                        </div>
+
+                        <!-- Show the download button if the XLS file is available -->
+                        <div class="container p-3 text-center mt-2 col-auto" style="width: 30%;">
+                            <a href="{{ url_for('download_file', filename=xls_file) }}"
+                                class="btn btn-primary fs-5 d-block mx-auto" style="width: 100%;">
+                                Download
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Selected Profiles -->
+                    <div class="container mt-3 mb-3">
+                        <!-- Spinner widget (initially hidden) -->
+                        <div class="text-center mt-3" id="spinner" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p>Processing your request, please wait...</p>
+                        </div>
+
+
+                        <!-- Table Section -->
+                        <div class="table-container">
+                            {% if table_data %}
+                            <table class="table-responsive">
+                                {{ table_data|safe }}
+                            </table>
+                            {% else %}
+                            <p class="text-center mt-3" id="no_data_txt">No data to display yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+</body>
+<script>
+    // Activate tooltips on page load
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
+    // Show the spinner and hide no data text when process is clicked
+    document.getElementById('process').addEventListener('click', function () {
+        // Check if the error message is present
+        const errorMessageDiv = document.querySelector('.alert-danger');
+
+        // If no error message exists, show the spinner
+        if (!errorMessageDiv) {
+            var spinner = document.getElementById("spinner");
+            spinner.style.display = "block";
+            no_data_txt = document.getElementById("no_data_txt")
+            no_data_txt.style.display = "none";
+        }
+    });
+
+
+    document.getElementById('clear_data').addEventListener('click', function () {
+        fetch('/clear_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert('Failed to clear uploads.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    });
+
+    document.getElementById('search').addEventListener('keyup', function () {
+        let filter = this.value.toLowerCase();
+        let roles = document.querySelectorAll('#roleList li');
+
+        roles.forEach(function (role) {
+            let text = role.textContent || role.innerText;
+            if (text.toLowerCase().indexOf(filter) > -1) {
+                role.style.display = '';
+            } else {
+                role.style.display = 'none';
+            }
+        });
+    });
+
+
+</script>
+
+</html>
