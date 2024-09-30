@@ -19,7 +19,7 @@ The following resources are available within the repository:
    You can either download the entire repository or just **App 5** to get started.
 
 2. **Download Olama**:  
-   Visit the official website to download Olama. You will need it to pull the specific model required for the application.
+   Visit the official website to download [Ollama](https://ollama.com/download/OllamaSetup.exe). You will need it to pull the specific model required for the application.
 
 3. **Pull the Model**:  
    We are using the **phi3 model** in this case. Once you have downloaded the executable file for Olama, run the following command in your terminal to pull the model:
